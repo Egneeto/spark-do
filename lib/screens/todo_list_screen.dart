@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/todo_provider_supabase_only.dart';
 import '../models/todo_item.dart';
+import '../utils/share_dialog_helper.dart';
 
 class TodoListScreen extends StatefulWidget {
   const TodoListScreen({super.key});
@@ -226,36 +228,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   void _showShareDialog(BuildContext context, todoList) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Share Todo List'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Share this link with others:'),
-            const SizedBox(height: 8),
-            SelectableText(
-              todoList.shareableLink ?? 'No link available',
-              style: const TextStyle(
-                fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Anyone with this link will be able to view this todo list.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+    ShareDialogHelper.showShareDialog(context, todoList);
   }
 
   void _editTodoList(BuildContext context, todoList) {

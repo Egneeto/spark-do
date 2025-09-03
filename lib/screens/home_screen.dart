@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/todo_provider_supabase_only.dart';
 import '../models/todo_list.dart';
 import '../config/supabase_config.dart';
+import '../utils/share_dialog_helper.dart';
 import 'todo_list_screen.dart';
 import 'calendar_screen.dart';
 import 'create_todo_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
+  const HomeScreen({super.key        ],
+      ),
+    );
+  }
+}override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
@@ -285,7 +289,7 @@ class TodoListCard extends StatelessWidget {
             if (todoList.isShared)
               IconButton(
                 icon: const Icon(Icons.share),
-                onPressed: () => _showShareDialog(context, todoList),
+                onPressed: () => ShareDialogHelper.showShareDialog(context, todoList),
               ),
             PopupMenuButton<String>(
               onSelected: (value) => _handleMenuAction(context, value, todoList),
@@ -404,32 +408,7 @@ class TodoListCard extends StatelessWidget {
   }
 
   void _showShareDialog(BuildContext context, TodoList todoList) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Share Todo List'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Share this link with others:'),
-            const SizedBox(height: 8),
-            SelectableText(
-              todoList.shareableLink ?? 'No link available',
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                backgroundColor: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+    ShareDialogHelper.showShareDialog(context, todoList);
   }
 
   void _showDeleteDialog(BuildContext context, TodoList todoList) {
@@ -507,5 +486,10 @@ class LinkTodoListDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  // Helper function to copy text to clipboard
+  Future<void> _copyToClipboard(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
   }
 }
