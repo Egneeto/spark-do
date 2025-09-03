@@ -10,11 +10,9 @@ import 'calendar_screen.dart';
 import 'create_todo_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key        ],
-      ),
-    );
-  }
-}override
+  const HomeScreen({super.key});
+
+  @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
