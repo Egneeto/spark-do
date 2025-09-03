@@ -211,8 +211,8 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
       
       final todoProvider = context.read<TodoProvider>();
       
-      // Update the item in Supabase
-      await todoProvider.updateTodoItem(updatedItem);
+      // Update the item in Supabase using share token for shared lists
+      await todoProvider.updateTodoItemInSharedList(updatedItem, widget.shareToken);
       
       // Show feedback
       if (mounted) {

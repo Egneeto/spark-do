@@ -236,6 +236,56 @@ class SupabaseService {
     }
   }
   
+  /// Update todo item in a shared list using share token for permission validation
+  Future<TodoItem> updateTodoItemInSharedList(TodoItem item, String shareToken) async {
+    try {
+      // First verify the share token is valid and allows anonymous edit
+      final shareCheckResponse = await client
+          .from('todo_lists')
+          .select('id, allow_anonymous_edit')
+          .eq('share_token', shareToken)
+          .eq('is_shared', true)
+          .eq('is_archived', false)
+          .maybeSingle();
+      
+      if (shareCheckResponse == null) {
+        throw Exception('Invalid share token or list not found');
+      }
+      
+      if (shareCheckResponse['allow_anonymous_edit'] != true) {
+        throw Exception('This shared list does not allow editing');
+      }
+      
+      // Update the todo item
+      final data = {
+        'title': item.title,
+        'description': item.description,
+        'priority': item.priority.name,
+        'due_date': item.dueDate?.toIso8601String(),
+        'is_completed': item.isCompleted,
+      };
+      
+      if (item.isCompleted) {
+        data['completed_at'] = DateTime.now().toIso8601String();
+      }
+      
+      final response = await client
+          .from('todo_items')
+          .update(data)
+          .eq('id', item.id)
+          .eq('todo_list_id', shareCheckResponse['id']) // Extra security check
+          .select()
+          .single();
+      
+      // Log the edit action
+      await _logShareAccess(shareToken, 'edit');
+      
+      return _todoItemFromSupabase(response);
+    } catch (e) {
+      throw Exception('Failed to update todo item in shared list: $e');
+    }
+  }
+  
   /// Delete todo item
   Future<void> deleteTodoItem(String itemId) async {
     try {

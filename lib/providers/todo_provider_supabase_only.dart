@@ -172,6 +172,18 @@ class TodoProvider extends ChangeNotifier {
     }
   }
 
+  // Update todo item in a shared list using share token
+  Future<void> updateTodoItemInSharedList(TodoItem updatedItem, String shareToken) async {
+    if (!isSupabaseConfigured) return;
+
+    try {
+      await _supabaseService.updateTodoItemInSharedList(updatedItem, shareToken);
+    } catch (e) {
+      debugPrint('Error updating todo item in shared list: $e');
+      rethrow;
+    }
+  }
+
   // Delete todo item
   Future<void> deleteTodoItem(String itemId) async {
     if (_currentTodoList == null || !isSupabaseConfigured) return;
