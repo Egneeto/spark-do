@@ -5,9 +5,9 @@ import '../models/todo_list.dart';
 import '../models/todo_item.dart';
 
 class SharedTodoListScreen extends StatefulWidget {
-  final String todoListId;
+  final String shareToken;
 
-  const SharedTodoListScreen({super.key, required this.todoListId});
+  const SharedTodoListScreen({super.key, required this.shareToken});
 
   @override
   State<SharedTodoListScreen> createState() => _SharedTodoListScreenState();
@@ -27,7 +27,8 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
   Future<void> _loadTodoList() async {
     try {
       final todoProvider = context.read<TodoProvider>();
-      final todoList = await todoProvider.getTodoListById(widget.todoListId);
+      // Use share token to get todo list, not direct ID lookup
+      final todoList = await todoProvider.getTodoListByShareableLink(widget.shareToken);
       
       if (mounted) {
         setState(() {

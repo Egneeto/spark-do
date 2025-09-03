@@ -8,10 +8,10 @@ class AppRouter {
       case '/':
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case '/shared':
-        final String? todoListId = settings.arguments as String?;
-        if (todoListId != null) {
+        final String? shareToken = settings.arguments as String?;
+        if (shareToken != null) {
           return MaterialPageRoute(
-            builder: (_) => SharedTodoListScreen(todoListId: todoListId),
+            builder: (_) => SharedTodoListScreen(shareToken: shareToken),
           );
         }
         return MaterialPageRoute(builder: (_) => const HomeScreen());

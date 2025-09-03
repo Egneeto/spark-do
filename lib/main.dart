@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/todo_provider_supabase_only.dart';
 import 'screens/home_screen.dart';
+import 'screens/shared_todo_list_screen.dart';
 import 'utils/app_router.dart';
 import 'services/supabase_service.dart';
 import 'services/supabase_connection_test.dart';
@@ -195,22 +196,29 @@ class _AppLauncherState extends State<AppLauncher> {
   }
 
   void _handleInitialRoute() {
-    // In a real web app, you would check the current URL here
-    // For now, we'll always start with the home screen
-    // But this is where you'd parse the URL to check for shared links
+    // Check the current URL for shared links
+    final currentUrl = html.window.location.href;
+    debugPrint('SparkDo: Current URL: $currentUrl');
     
-    // Example of how to handle a shared link:
-    // final currentUrl = window.location.href; // For web
-    // final todoListId = AppRouter.extractTodoListIdFromLink(currentUrl);
-    // if (todoListId != null) {
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (_) => SharedTodoListScreen(todoListId: todoListId),
-    //     ),
-    //   );
-    //   return;
-    // }
+    // Extract todo list ID from shared link
+    final todoListId = AppRouter.extractTodoListIdFromLink(currentUrl);
+    debugPrint('SparkDo: Extracted todo list ID: $todoListId');
+    
+    if (todoListId != null) {
+      // Navigate to shared todo list screen
+      debugPrint('SparkDo: Navigating to shared todo list with token: $todoListId');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SharedTodoListScreen(shareToken: todoListId),
+          ),
+        );
+      });
+      return;
+    }
+    
+    debugPrint('SparkDo: No shared link detected, showing home screen');
   }
 
   @override
