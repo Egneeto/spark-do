@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/todo_list.dart';
 import '../models/todo_item.dart';
+import '../config/supabase_config.dart';
 
 class SupabaseService {
   static SupabaseService? _instance;
@@ -453,7 +454,7 @@ class SupabaseService {
   
   /// Generate shareable URL from token
   String _generateShareableUrl(String token) {
-    // Update this with your actual domain
-    return 'https://your-domain.github.io/#/shared/$token';
+    // Use configured domain from SupabaseConfig
+    return '${SupabaseConfig.appDomain}#/shared/$token';
   }
 }

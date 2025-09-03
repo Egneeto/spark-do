@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/todo_provider_supabase_only.dart';
 import '../models/todo_list.dart';
+import '../config/supabase_config.dart';
 import 'todo_list_screen.dart';
 import 'calendar_screen.dart';
 import 'create_todo_list_screen.dart';
@@ -391,10 +392,10 @@ class TodoListCard extends StatelessWidget {
     final provider = context.read<TodoProvider>();
     
     if (!todoList.isShared) {
-      // Generate a shareable link
+      // Generate a shareable link using configured domain
       final updatedList = todoList.copyWith(
         isShared: true,
-        shareableLink: 'https://your-app-domain.github.io/#/shared/${todoList.id}',
+        shareableLink: '${SupabaseConfig.appDomain}#/shared/${todoList.id}',
       );
       await provider.updateTodoList(updatedList);
     }
