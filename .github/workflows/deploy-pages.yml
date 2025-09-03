@@ -35,7 +35,7 @@ jobs:
         flutter pub get
         
     - name: Build Flutter web
-      run: flutter build web --release
+      run: flutter build web --release --base-href /spark-do/
       
     - name: Setup Pages
       uses: actions/configure-pages@v5
