@@ -23,6 +23,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     super.initState();
     _selectedDay = DateTime.now();
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+    
+    // Refresh data from server when entering calendar screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TodoProvider>().loadTodoLists();
+    });
   }
 
   @override
@@ -60,6 +65,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: Consumer<TodoProvider>(
         builder: (context, todoProvider, child) {
+          // Update selected events when todo lists change
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_selectedDay != null) {
+              final newEvents = _getEventsForDay(_selectedDay!);
+              if (_selectedEvents.value.length != newEvents.length ||
+                  !_selectedEvents.value.every((event) => newEvents.any((newEvent) => newEvent.id == event.id))) {
+                _selectedEvents.value = newEvents;
+              }
+            }
+          });
+          
           return Column(
             children: [
               TableCalendar<TodoList>(
@@ -72,10 +88,43 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 calendarStyle: const CalendarStyle(
                   outsideDaysVisible: false,
                   markersMaxCount: 3,
-                  markerDecoration: BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
-                  ),
+                ),
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, date, events) {
+                    if (events.isEmpty) return null;
+                    
+                    return Positioned(
+                      bottom: 1,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: events.take(3).map((event) {
+                          final todoList = event;
+                          Color markerColor;
+                          
+                          // Determine marker color based on completion status
+                          if (todoList.completionPercentage == 1.0) {
+                            markerColor = Colors.green; // Completed - green dot
+                          } else if (todoList.isOverdue) {
+                            markerColor = Colors.red; // Overdue - red dot
+                          } else if (todoList.completionPercentage > 0.5) {
+                            markerColor = Colors.orange; // Partially complete - orange dot
+                          } else {
+                            markerColor = Colors.blue; // Not started or minimal progress - blue dot
+                          }
+                          
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: markerColor,
+                              shape: BoxShape.circle,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
                 ),
                 onDaySelected: (selectedDay, focusedDay) {
                   if (!isSameDay(_selectedDay, selectedDay)) {
@@ -250,14 +299,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ),
                               ],
                             ),
-                            onTap: () {
+                            onTap: () async {
                               todoProvider.setCurrentTodoList(todoList);
-                              Navigator.push(
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const TodoListScreen(),
                                 ),
                               );
+                              // Refresh data when returning from TodoListScreen
+                              if (context.mounted) {
+                                await todoProvider.loadTodoLists();
+                                setState(() {
+                                  _selectedEvents.value = _getEventsForDay(_selectedDay!);
+                                });
+                              }
                             },
                           ),
                         );
@@ -295,16 +351,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  void _handleMenuAction(BuildContext context, String action, TodoList todoList) {
+  void _handleMenuAction(BuildContext context, String action, TodoList todoList) async {
     switch (action) {
       case 'open':
         context.read<TodoProvider>().setCurrentTodoList(todoList);
-        Navigator.push(
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => const TodoListScreen(),
           ),
         );
+        // Refresh data when returning from TodoListScreen
+        if (context.mounted) {
+          await context.read<TodoProvider>().loadTodoLists();
+          setState(() {
+            _selectedEvents.value = _getEventsForDay(_selectedDay!);
+          });
+        }
         break;
       case 'reschedule':
         _rescheduleTodoList(context, todoList);
@@ -321,12 +384,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
       initialDate: todoList.scheduledDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-    ).then((selectedDate) {
+    ).then((selectedDate) async {
       if (selectedDate != null) {
-        context.read<TodoProvider>().scheduleTodoList(todoList.id, selectedDate);
-        setState(() {
-          _selectedEvents.value = _getEventsForDay(_selectedDay!);
-        });
+        await context.read<TodoProvider>().scheduleTodoList(todoList.id, selectedDate);
+        if (context.mounted) {
+          await context.read<TodoProvider>().loadTodoLists();
+          setState(() {
+            _selectedEvents.value = _getEventsForDay(_selectedDay!);
+          });
+        }
       }
     });
   }
@@ -345,13 +411,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               final updatedList = todoList.copyWith(scheduledDate: null);
-              context.read<TodoProvider>().updateTodoList(updatedList);
+              await context.read<TodoProvider>().updateTodoList(updatedList);
               Navigator.pop(context);
-              setState(() {
-                _selectedEvents.value = _getEventsForDay(_selectedDay!);
-              });
+              if (context.mounted) {
+                await context.read<TodoProvider>().loadTodoLists();
+                setState(() {
+                  _selectedEvents.value = _getEventsForDay(_selectedDay!);
+                });
+              }
             },
             child: const Text('Remove'),
           ),
