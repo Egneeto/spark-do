@@ -123,7 +123,7 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'This is a shared todo list. You are viewing it in read-only mode.',
+                    'This is a shared todo list. You can mark tasks as complete/incomplete.',
                     style: TextStyle(
                       color: Colors.blue.shade700,
                       fontWeight: FontWeight.w500,
@@ -184,13 +184,52 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
                     itemCount: _todoList!.items.length,
                     itemBuilder: (context, index) {
                       final item = _todoList!.items[index];
-                      return SharedTodoItemCard(item: item);
+                      return SharedTodoItemCard(
+                        item: item,
+                        onToggleComplete: (TodoItem item) => _toggleItemCompletion(item),
+                      );
                     },
                   ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _toggleItemCompletion(TodoItem item) async {
+    try {
+      final updatedItem = item.copyWith(isCompleted: !item.isCompleted);
+      final todoProvider = context.read<TodoProvider>();
+      
+      // Update the item in Supabase
+      await todoProvider.updateTodoItem(updatedItem);
+      
+      // Reload the todo list to get updated data
+      await _loadTodoList();
+      
+      // Show feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              updatedItem.isCompleted 
+                ? '✓ Task marked as complete' 
+                : '○ Task marked as incomplete'
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating task: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showTodoListInfo(BuildContext context, TodoList todoList) {
@@ -231,7 +270,7 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'This is a shared todo list in read-only mode.',
+                      'This is a shared todo list. You can mark tasks as complete/incomplete.',
                       style: TextStyle(
                         color: Colors.blue.shade700,
                         fontSize: 12,
@@ -256,8 +295,13 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
 
 class SharedTodoItemCard extends StatelessWidget {
   final TodoItem item;
+  final Function(TodoItem) onToggleComplete;
 
-  const SharedTodoItemCard({super.key, required this.item});
+  const SharedTodoItemCard({
+    super.key, 
+    required this.item,
+    required this.onToggleComplete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +310,7 @@ class SharedTodoItemCard extends StatelessWidget {
       child: ListTile(
         leading: Checkbox(
           value: item.isCompleted,
-          onChanged: null, // Read-only mode
+          onChanged: (value) => onToggleComplete(item),
         ),
         title: Text(
           item.title,
