@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SparkDo Test Page</title>
+</head>
+<body>
+    <h1>SparkDo Test Page</h1>
+    <p>If you can see this page, the GitHub Pages deployment is working.</p>
+    <p>Base URL: <span id="base-url"></span></p>
+    <p>Current Time: <span id="current-time"></span></p>
+    
+    <script>
+        document.getElementById('base-url').textContent = window.location.href;
+        document.getElementById('current-time').textContent = new Date().toISOString();
+        console.log('Test page loaded successfully');
+    </script>
+</body>
+</html>
