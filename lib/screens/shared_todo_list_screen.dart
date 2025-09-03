@@ -199,13 +199,20 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
   Future<void> _toggleItemCompletion(TodoItem item) async {
     try {
       final updatedItem = item.copyWith(isCompleted: !item.isCompleted);
+      
+      // Update UI immediately for better UX
+      setState(() {
+        final updatedItems = _todoList!.items.map((todoItem) {
+          return todoItem.id == item.id ? updatedItem : todoItem;
+        }).toList();
+        
+        _todoList = _todoList!.copyWith(items: updatedItems);
+      });
+      
       final todoProvider = context.read<TodoProvider>();
       
       // Update the item in Supabase
       await todoProvider.updateTodoItem(updatedItem);
-      
-      // Reload the todo list to get updated data
-      await _loadTodoList();
       
       // Show feedback
       if (mounted) {
@@ -220,7 +227,18 @@ class _SharedTodoListScreenState extends State<SharedTodoListScreen> {
           ),
         );
       }
+      
+      // Reload the todo list to sync with server (after a brief delay)
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _loadTodoList();
+        }
+      });
+      
     } catch (e) {
+      // If there's an error, reload to get the correct state
+      await _loadTodoList();
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
