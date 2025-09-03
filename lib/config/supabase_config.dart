@@ -6,7 +6,7 @@ class SupabaseConfig {
   static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0bXhieW9ud2poenJ6d2F0d2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NDY0MDcsImV4cCI6MjA3MjQyMjQwN30.SoEmLjtxFBX8mOoUK2GdU8dAbLW3jEGSbvp89SnPqfU';
   
   // Your app's domain for generating shareable links
-  static const String appDomain = 'https://your-username.github.io/your-repo-name';
+  static const String appDomain = 'https://egneeto.github.io/spark-do/';
   
   // Configuration for share links
   static const bool enableShareExpiration = false; // Set to true if you want links to expire

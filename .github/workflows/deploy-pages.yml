@@ -27,26 +27,10 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.0'
         channel: 'stable'
         
     - name: Get Flutter dependencies
       run: flutter pub get
-      
-    - name: Create web environment config
-      run: |
-        mkdir -p web/assets/config
-        cat > web/assets/config/app_config.json << EOF
-        {
-          "supabaseUrl": "${{ secrets.SUPABASE_URL }}",
-          "supabaseAnonKey": "${{ secrets.SUPABASE_ANON_KEY }}"
-        }
-        EOF
-        
-    - name: Update Supabase config for production
-      run: |
-        sed -i "s|static const String supabaseUrl = '.*';|static const String supabaseUrl = '\${{ secrets.SUPABASE_URL }}';|g" lib/config/supabase_config.dart
-        sed -i "s|static const String supabaseAnonKey = '.*';|static const String supabaseAnonKey = '\${{ secrets.SUPABASE_ANON_KEY }}';|g" lib/config/supabase_config.dart
         
     - name: Build Flutter web
       run: flutter build web --release --web-renderer html
